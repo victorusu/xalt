@@ -114,6 +114,20 @@ find_real_command()
         fi
       fi
     done
+
+    # Fix for the cce/9.0.2 with > PS03
+    # We are capturing the cray linker which is not compatible with the system linker
+    XALT_LIBEXEC_DIR=$XALT_DIR/libexec                                                             
+    EXTRACT_LINKER=$XALT_LIBEXEC_DIR/xalt_extract_linker  
+    COMP_T=$(PATH=@xalt_system_path@ LD_LIBRARY_PATH=@cxx_ld_library_path@ $EXTRACT_LINKER)
+    compilerPath=`echo ${COMP_T} | jq .compilerPath`
+    if [[ ${compilerPath} = \"/usr/bin/g* ]] || [[ ${compilerPath} = \"/usr/bin/cc* ]] || [[ ${compilerPath} = \"/usr/bin/c++* ]]; then
+      # my_cmd='/opt/cray/pe/cce/9.1.3/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld'
+      my_cmd='/usr/bin/ld'
+    elif [[ ${compilerPath} = \"/opt/nvidia/cudatoolkit* ]]; then
+      my_cmd='/usr/bin/ld'
+    fi
+
   else
     ###################################################################
     # If this script is not treated as a bash script then do this the
@@ -134,6 +148,20 @@ find_real_command()
       fi
     done
     IFS=$OLD_IFS
+
+    # Fix for the cce/9.0.2 with > PS03
+    # We are capturing the cray linker which is not compatible with the system linker
+    XALT_LIBEXEC_DIR=$XALT_DIR/libexec                                                             
+    EXTRACT_LINKER=$XALT_LIBEXEC_DIR/xalt_extract_linker  
+    COMP_T=$(PATH=@xalt_system_path@ LD_LIBRARY_PATH=@cxx_ld_library_path@ $EXTRACT_LINKER)
+    compilerPath=`echo ${COMP_T} | jq .compilerPath`
+    if [[ ${compilerPath} = \"/usr/bin/g* ]] || [[ ${compilerPath} = \"/usr/bin/cc* ]] || [[ ${compilerPath} = \"/usr/bin/c++* ]]; then
+      # my_cmd='/opt/cray/pe/cce/9.1.3/binutils/x86_64/x86_64-pc-linux-gnu/bin/ld'
+      my_cmd='/usr/bin/ld'
+    elif [[ ${compilerPath} = \"/opt/nvidia/cudatoolkit* ]]; then
+      my_cmd='/usr/bin/ld'
+    fi
+
   fi
   if [ "$my_cmd" = unknown ]; then
     builtin echo -n "XALT Error: unable to find $my_name"
